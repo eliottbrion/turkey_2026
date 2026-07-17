@@ -123,13 +123,13 @@ else:
 
 st.divider()
 
-tab_overview, tab_days, tab_map = st.tabs(["📅 Vue d'ensemble", "📖 Jour par jour", "🗺️ Carte"])
+tab_map, tab_timeline = st.tabs(["🗺️ Carte", "📅 Ligne du temps"])
 
 # ---------------------------------------------------------------------------
-# Overview tab: timeline + stay summary
+# Timeline tab: gantt chart + stay summary
 # ---------------------------------------------------------------------------
 
-with tab_overview:
+with tab_timeline:
     st.subheader("Frise chronologique du séjour")
 
     fig = px.timeline(
@@ -163,36 +163,6 @@ with tab_overview:
             else:
                 st.caption(f"{seg['start'].strftime('%d %b')} → {seg['end'].strftime('%d %b')}")
                 st.caption(f"{seg['nights']} nuit(s)")
-
-# ---------------------------------------------------------------------------
-# Day-by-day tab
-# ---------------------------------------------------------------------------
-
-with tab_days:
-    st.subheader("Détail jour par jour")
-
-    selected_date = st.select_slider(
-        "Choisir un jour",
-        options=df["date"].tolist(),
-        value=df["date"].iloc[0],
-        format_func=lambda d: d.strftime("%d %b"),
-    )
-    row = df[df["date"] == selected_date].iloc[0]
-
-    st.markdown(f"### Jour {row['jour_num']} — {row['date'].strftime('%A %d %B %Y')}")
-    c1, c2, c3 = st.columns(3)
-    c1.markdown(f"**Type de journée**\n\n{row['type']}")
-    c2.markdown(f"**Programme**\n\n{row['journee']}")
-    c3.markdown(f"**Nuit à**\n\n{row['nuit']}")
-
-    st.divider()
-    st.dataframe(
-        df[["jour_num", "date_str", "journee", "nuit", "type"]].rename(
-            columns={"jour_num": "Jour", "date_str": "Date", "journee": "Programme", "nuit": "Nuit", "type": "Type"}
-        ),
-        hide_index=True,
-        use_container_width=True,
-    )
 
 # ---------------------------------------------------------------------------
 # Map tab
@@ -250,16 +220,3 @@ with tab_map:
         legend_title_text="Légende",
     )
     st.plotly_chart(fig_map, use_container_width=True)
-
-    st.caption(
-        "Coordonnées approximatives. Toutes les étapes de l'itinéraire (Antalya, "
-        "Göreme, Kaş, Fethiye) partagent une même couleur ; les idées d'excursions "
-        "à proximité apparaissent dans une autre couleur."
-    )
-
-st.divider()
-st.caption(
-    "Programme reconstruit à partir du tableau de voyage d'origine. "
-    "Les journées libres entre les étapes indiquées (vols/routes) ont été "
-    "complétées automatiquement à partir du lieu de nuit."
-)
