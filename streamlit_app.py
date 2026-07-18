@@ -1,3 +1,4 @@
+import calendar
 import datetime as dt
 
 import pandas as pd
@@ -79,6 +80,71 @@ df = pd.DataFrame(ITINERARY)
 df["jour_num"] = range(1, len(df) + 1)
 df["date_str"] = df["date"].apply(lambda d: d.strftime("%a %d %b"))
 
+DAY_MAP = {row["date"]: row for _, row in df.iterrows()}
+
+MONTH_NAMES_FR = {
+    1: "Janvier", 2: "Février", 3: "Mars", 4: "Avril", 5: "Mai", 6: "Juin",
+    7: "Juillet", 8: "Août", 9: "Septembre", 10: "Octobre", 11: "Novembre", 12: "Décembre",
+}
+WEEKDAY_LABELS_FR = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
+
+
+def month_calendar_html(year: int, month: int) -> str:
+    """Render a Google-Agenda-style mini month calendar as an HTML table."""
+    weeks = calendar.Calendar(firstweekday=0).monthdatescalendar(year, month)
+
+    header_cells = "".join(f"<th>{lbl}</th>" for lbl in WEEKDAY_LABELS_FR)
+    rows_html = ""
+    for week in weeks:
+        cells_html = ""
+        for d in week:
+            in_month = d.month == month
+            info = DAY_MAP.get(d)
+            if info is not None:
+                bg = LOCATION_COLORS[info["nuit"]]
+                text_color = "#ffffff"
+                title = f"{info['journee']} — Nuit à {info['nuit']}"
+                chip = f"<div class='cal-chip'>{info['nuit']}</div>"
+            elif in_month:
+                bg = "#fcfcfb"
+                text_color = "#0b0b0b"
+                title = ""
+                chip = ""
+            else:
+                bg = "#f9f9f7"
+                text_color = "#c3c2b7"
+                title = ""
+                chip = ""
+            cells_html += (
+                f"<td class='cal-cell' style='background:{bg};color:{text_color};' title='{title}'>"
+                f"<div class='cal-daynum'>{d.day}</div>{chip}"
+                f"</td>"
+            )
+        rows_html += f"<tr>{cells_html}</tr>"
+
+    return f"""
+    <div class="cal-wrap">
+      <div class="cal-month-title">{MONTH_NAMES_FR[month]} {year}</div>
+      <table class="cal-table">
+        <thead><tr>{header_cells}</tr></thead>
+        <tbody>{rows_html}</tbody>
+      </table>
+    </div>
+    """
+
+
+CAL_CSS = """
+<style>
+.cal-wrap { border: 1px solid rgba(11,11,11,0.10); border-radius: 8px; overflow: hidden; background: #fcfcfb; }
+.cal-month-title { font-weight: 600; font-size: 0.95rem; color: #0b0b0b; padding: 10px 12px 4px; }
+.cal-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.cal-table th { font-size: 0.72rem; font-weight: 500; color: #898781; padding: 4px 2px; text-align: center; }
+.cal-cell { height: 56px; vertical-align: top; padding: 4px 4px; border: 1px solid #e1e0d9; font-size: 0.72rem; }
+.cal-daynum { font-size: 0.75rem; font-weight: 600; }
+.cal-chip { margin-top: 2px; font-size: 0.66rem; line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+</style>
+"""
+
 # ---------------------------------------------------------------------------
 # Stay segments (consecutive nights in the same place) for the timeline chart
 # ---------------------------------------------------------------------------
@@ -131,28 +197,14 @@ tab_map, tab_timeline = st.tabs(["🗺️ Carte", "📅 Ligne du temps"])
 # ---------------------------------------------------------------------------
 
 with tab_timeline:
-    st.subheader("Frise chronologique du séjour")
+    st.subheader("Calendrier du séjour")
 
-    fig = px.timeline(
-        seg_df,
-        x_start="start",
-        x_end="end",
-        y=[""] * len(seg_df),
-        color="location",
-        color_discrete_map=LOCATION_COLORS,
-        category_orders={"location": list(LOCATION_COLORS.keys())},
-        hover_data={"nights": True, "start": True, "end": True},
-    )
-    fig.update_yaxes(visible=False)
-    fig.update_traces(marker_line_width=1, marker_line_color="rgba(11,11,11,0.10)")
-    fig.update_layout(
-        template="plotly_white",
-        height=220,
-        legend_title_text="Étape",
-        margin=dict(l=10, r=10, t=10, b=10),
-        xaxis_title=None,
-    )
-    st.plotly_chart(fig, use_container_width=True)
+    months = sorted({(d.year, d.month) for d in df["date"]})
+    st.markdown(CAL_CSS, unsafe_allow_html=True)
+    cal_cols = st.columns(len(months))
+    for col, (year, month) in zip(cal_cols, months):
+        with col:
+            st.markdown(month_calendar_html(year, month), unsafe_allow_html=True)
 
     st.subheader("Récapitulatif par étape")
     summary_cols = st.columns(len(seg_df))
