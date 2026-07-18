@@ -68,7 +68,7 @@ ITINERARY = [
     dict(date=dt.date(2026, 9, 4), journee="Route retour de Cappadoce vers Kas", nuit="Kas", type="Route 🚗", adresse=KAS_AIRBNB_ADDRESS, trajet="~6h30 - 7h de route (≈500 km)"),
     dict(date=dt.date(2026, 9, 5), journee="Journée chill à Kas", nuit="Kas", type="Séjour 🏖️", adresse=KAS_AIRBNB_ADDRESS),
     dict(date=dt.date(2026, 9, 6), journee="Demre + Kekova island", nuit="Kas", type="Séjour 🏖️", adresse=KAS_AIRBNB_ADDRESS),
-    dict(date=dt.date(2026, 9, 7), journee="Séjour à Kas", nuit="Kas", type="Séjour 🏖️", adresse=KAS_AIRBNB_ADDRESS),
+    dict(date=dt.date(2026, 9, 7), journee="Kastellorizo", nuit="Kas", type="Séjour 🏖️", adresse=KAS_AIRBNB_ADDRESS),
     dict(date=dt.date(2026, 9, 8), journee="Transfert vers Fethiye", nuit="Fethiye", type="Route 🚗"),
     dict(date=dt.date(2026, 9, 9), journee="Séjour à Fethiye", nuit="Fethiye", type="Séjour 🏖️"),
     dict(date=dt.date(2026, 9, 10), journee="Séjour à Fethiye", nuit="Fethiye", type="Séjour 🏖️"),
