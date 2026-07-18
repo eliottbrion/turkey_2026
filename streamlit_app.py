@@ -97,25 +97,22 @@ def agenda_html(trip_df: pd.DataFrame) -> str:
             d = info["date"]
             color = LOCATION_COLORS[info["nuit"]]
             dow = WEEKDAY_LABELS_FR[d.weekday()]
-            rows_html += f"""
-            <div class="agenda-row">
-              <div class="agenda-date">
-                <div class="agenda-daynum">{d.day}</div>
-                <div class="agenda-dow">{dow}</div>
-              </div>
-              <div class="agenda-chip" style="border-left-color:{color};">
-                <span class="agenda-dot" style="background:{color};"></span>
-                <div class="agenda-text">
-                  <div class="agenda-loc">{info['nuit']}</div>
-                  <div class="agenda-desc">{info['journee']}</div>
-                </div>
-              </div>
-            </div>
-            """
-        sections += f"""
-        <div class="agenda-month-title">{MONTH_NAMES_FR[month]} {year}</div>
-        {rows_html}
-        """
+            rows_html += (
+                '<div class="agenda-row">'
+                '<div class="agenda-date">'
+                f'<div class="agenda-daynum">{d.day}</div>'
+                f'<div class="agenda-dow">{dow}</div>'
+                "</div>"
+                f'<div class="agenda-chip" style="border-left-color:{color};">'
+                f'<span class="agenda-dot" style="background:{color};"></span>'
+                '<div class="agenda-text">'
+                f'<div class="agenda-loc">{info["nuit"]}</div>'
+                f'<div class="agenda-desc">{info["journee"]}</div>'
+                "</div>"
+                "</div>"
+                "</div>"
+            )
+        sections += f'<div class="agenda-month-title">{MONTH_NAMES_FR[month]} {year}</div>{rows_html}'
     return f'<div class="agenda-wrap">{sections}</div>'
 
 
