@@ -39,6 +39,7 @@ POINTS_OF_INTEREST = {
     "Kastellorizo": (36.1499, 29.5883),
     "Plage de Kaputas": (36.1699, 29.6216),
     "Kekova island": (36.1904, 29.8724),
+    "Demre": (36.2467, 29.9833),
     "Dalyan": (36.8386, 28.6478),
     "Egirdir": (37.8792, 30.8536),
     "Aspendos": (36.9351, 31.1725),
