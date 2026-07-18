@@ -56,6 +56,8 @@ POINTS_OF_INTEREST = {
     "Chutes Duden": (36.9214, 30.7908),
 }
 
+KAS_AIRBNB_ADDRESS = "Likya Caddesi No:14 / B, Kaş, Antalya 07580, Turkey"
+
 ITINERARY = [
     dict(date=dt.date(2026, 8, 29), journee="Vol jusqu'à Antalya", nuit="Antalya", type="Vol ✈️"),
     dict(date=dt.date(2026, 8, 30), journee="Journée à Antalya", nuit="Antalya", type="Séjour 🏖️"),
@@ -63,10 +65,10 @@ ITINERARY = [
     dict(date=dt.date(2026, 9, 1), journee="Route aller vers la Cappadoce", nuit="Göreme", type="Route 🚗"),
     dict(date=dt.date(2026, 9, 2), journee="Découverte de la Cappadoce", nuit="Göreme", type="Séjour 🏖️"),
     dict(date=dt.date(2026, 9, 3), journee="Découverte de la Cappadoce", nuit="Göreme", type="Séjour 🏖️"),
-    dict(date=dt.date(2026, 9, 4), journee="Route retour de Cappadoce vers Kas", nuit="Kas", type="Route 🚗"),
-    dict(date=dt.date(2026, 9, 5), journee="Séjour à Kas", nuit="Kas", type="Séjour 🏖️"),
-    dict(date=dt.date(2026, 9, 6), journee="Séjour à Kas", nuit="Kas", type="Séjour 🏖️"),
-    dict(date=dt.date(2026, 9, 7), journee="Séjour à Kas", nuit="Kas", type="Séjour 🏖️"),
+    dict(date=dt.date(2026, 9, 4), journee="Route retour de Cappadoce vers Kas", nuit="Kas", type="Route 🚗", adresse=KAS_AIRBNB_ADDRESS),
+    dict(date=dt.date(2026, 9, 5), journee="Séjour à Kas", nuit="Kas", type="Séjour 🏖️", adresse=KAS_AIRBNB_ADDRESS),
+    dict(date=dt.date(2026, 9, 6), journee="Séjour à Kas", nuit="Kas", type="Séjour 🏖️", adresse=KAS_AIRBNB_ADDRESS),
+    dict(date=dt.date(2026, 9, 7), journee="Séjour à Kas", nuit="Kas", type="Séjour 🏖️", adresse=KAS_AIRBNB_ADDRESS),
     dict(date=dt.date(2026, 9, 8), journee="Transfert vers Fethiye", nuit="Fethiye", type="Route 🚗"),
     dict(date=dt.date(2026, 9, 9), journee="Séjour à Fethiye", nuit="Fethiye", type="Séjour 🏖️"),
     dict(date=dt.date(2026, 9, 10), journee="Séjour à Fethiye", nuit="Fethiye", type="Séjour 🏖️"),
@@ -97,6 +99,8 @@ def agenda_html(trip_df: pd.DataFrame) -> str:
             d = info["date"]
             color = LOCATION_COLORS[info["nuit"]]
             dow = WEEKDAY_LABELS_FR[d.weekday()]
+            adresse = info.get("adresse")
+            adresse_html = f'<div class="agenda-adresse">🏠 {adresse}</div>' if pd.notna(adresse) else ""
             rows_html += (
                 '<div class="agenda-row">'
                 '<div class="agenda-date">'
@@ -108,6 +112,7 @@ def agenda_html(trip_df: pd.DataFrame) -> str:
                 '<div class="agenda-text">'
                 f'<div class="agenda-loc">{info["nuit"]}</div>'
                 f'<div class="agenda-desc">{info["journee"]}</div>'
+                f"{adresse_html}"
                 "</div>"
                 "</div>"
                 "</div>"
@@ -130,6 +135,7 @@ CAL_CSS = """
 .agenda-text { min-width: 0; }
 .agenda-loc { font-size: 0.82rem; font-weight: 600; color: #0b0b0b; }
 .agenda-desc { font-size: 0.74rem; color: #52514e; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.agenda-adresse { font-size: 0.7rem; color: #52514e; margin-top: 2px; }
 </style>
 """
 
