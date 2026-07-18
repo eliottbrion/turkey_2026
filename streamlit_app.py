@@ -1,4 +1,3 @@
-import calendar
 import datetime as dt
 
 import pandas as pd
@@ -80,8 +79,6 @@ df = pd.DataFrame(ITINERARY)
 df["jour_num"] = range(1, len(df) + 1)
 df["date_str"] = df["date"].apply(lambda d: d.strftime("%a %d %b"))
 
-DAY_MAP = {row["date"]: row for _, row in df.iterrows()}
-
 MONTH_NAMES_FR = {
     1: "Janvier", 2: "Février", 3: "Mars", 4: "Avril", 5: "Mai", 6: "Juin",
     7: "Juillet", 8: "Août", 9: "Septembre", 10: "Octobre", 11: "Novembre", 12: "Décembre",
@@ -89,59 +86,53 @@ MONTH_NAMES_FR = {
 WEEKDAY_LABELS_FR = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
 
 
-def month_calendar_html(year: int, month: int) -> str:
-    """Render a Google-Agenda-style mini month calendar as an HTML table."""
-    weeks = calendar.Calendar(firstweekday=0).monthdatescalendar(year, month)
-
-    header_cells = "".join(f"<th>{lbl}</th>" for lbl in WEEKDAY_LABELS_FR)
-    rows_html = ""
-    for week in weeks:
-        cells_html = ""
-        for d in week:
-            in_month = d.month == month
-            info = DAY_MAP.get(d)
-            if info is not None:
-                bg = LOCATION_COLORS[info["nuit"]]
-                text_color = "#ffffff"
-                title = f"{info['journee']} — Nuit à {info['nuit']}"
-                chip = f"<div class='cal-chip'>{info['nuit']}</div>"
-            elif in_month:
-                bg = "#fcfcfb"
-                text_color = "#0b0b0b"
-                title = ""
-                chip = ""
-            else:
-                bg = "#f9f9f7"
-                text_color = "#c3c2b7"
-                title = ""
-                chip = ""
-            cells_html += (
-                f"<td class='cal-cell' style='background:{bg};color:{text_color};' title='{title}'>"
-                f"<div class='cal-daynum'>{d.day}</div>{chip}"
-                f"</td>"
-            )
-        rows_html += f"<tr>{cells_html}</tr>"
-
-    return f"""
-    <div class="cal-wrap">
-      <div class="cal-month-title">{MONTH_NAMES_FR[month]} {year}</div>
-      <table class="cal-table">
-        <thead><tr>{header_cells}</tr></thead>
-        <tbody>{rows_html}</tbody>
-      </table>
-    </div>
-    """
+def agenda_html(trip_df: pd.DataFrame) -> str:
+    """Render only the trip's own days as a Google-Agenda-style list, grouped by month."""
+    sections = ""
+    for (year, month), month_df in trip_df.groupby(
+        [trip_df["date"].apply(lambda d: d.year), trip_df["date"].apply(lambda d: d.month)], sort=False
+    ):
+        rows_html = ""
+        for _, info in month_df.iterrows():
+            d = info["date"]
+            color = LOCATION_COLORS[info["nuit"]]
+            dow = WEEKDAY_LABELS_FR[d.weekday()]
+            rows_html += f"""
+            <div class="agenda-row">
+              <div class="agenda-date">
+                <div class="agenda-daynum">{d.day}</div>
+                <div class="agenda-dow">{dow}</div>
+              </div>
+              <div class="agenda-chip" style="border-left-color:{color};">
+                <span class="agenda-dot" style="background:{color};"></span>
+                <div class="agenda-text">
+                  <div class="agenda-loc">{info['nuit']}</div>
+                  <div class="agenda-desc">{info['journee']}</div>
+                </div>
+              </div>
+            </div>
+            """
+        sections += f"""
+        <div class="agenda-month-title">{MONTH_NAMES_FR[month]} {year}</div>
+        {rows_html}
+        """
+    return f'<div class="agenda-wrap">{sections}</div>'
 
 
 CAL_CSS = """
 <style>
-.cal-wrap { border: 1px solid rgba(11,11,11,0.10); border-radius: 8px; overflow: hidden; background: #fcfcfb; }
-.cal-month-title { font-weight: 600; font-size: 0.95rem; color: #0b0b0b; padding: 10px 12px 4px; }
-.cal-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-.cal-table th { font-size: 0.72rem; font-weight: 500; color: #898781; padding: 4px 2px; text-align: center; }
-.cal-cell { height: 56px; vertical-align: top; padding: 4px 4px; border: 1px solid #e1e0d9; font-size: 0.72rem; }
-.cal-daynum { font-size: 0.75rem; font-weight: 600; }
-.cal-chip { margin-top: 2px; font-size: 0.66rem; line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.agenda-wrap { border: 1px solid rgba(11,11,11,0.10); border-radius: 8px; background: #fcfcfb; padding: 8px 12px; }
+.agenda-month-title { font-weight: 600; font-size: 0.85rem; color: #898781; padding: 10px 4px 6px; text-transform: uppercase; letter-spacing: 0.02em; }
+.agenda-row { display: flex; align-items: stretch; gap: 12px; padding: 6px 4px; border-bottom: 1px solid #e1e0d9; }
+.agenda-row:last-child { border-bottom: none; }
+.agenda-date { width: 44px; flex-shrink: 0; text-align: center; padding-top: 2px; }
+.agenda-daynum { font-size: 1.05rem; font-weight: 700; color: #0b0b0b; line-height: 1.1; }
+.agenda-dow { font-size: 0.68rem; color: #898781; text-transform: uppercase; }
+.agenda-chip { flex: 1; display: flex; align-items: center; gap: 8px; border-left: 4px solid; border-radius: 4px; background: #f9f9f7; padding: 6px 10px; min-width: 0; }
+.agenda-dot { display: none; }
+.agenda-text { min-width: 0; }
+.agenda-loc { font-size: 0.82rem; font-weight: 600; color: #0b0b0b; }
+.agenda-desc { font-size: 0.74rem; color: #52514e; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 </style>
 """
 
@@ -199,12 +190,8 @@ tab_map, tab_timeline = st.tabs(["🗺️ Carte", "📅 Ligne du temps"])
 with tab_timeline:
     st.subheader("Calendrier du séjour")
 
-    months = sorted({(d.year, d.month) for d in df["date"]})
     st.markdown(CAL_CSS, unsafe_allow_html=True)
-    cal_cols = st.columns(len(months))
-    for col, (year, month) in zip(cal_cols, months):
-        with col:
-            st.markdown(month_calendar_html(year, month), unsafe_allow_html=True)
+    st.markdown(agenda_html(df), unsafe_allow_html=True)
 
     st.subheader("Récapitulatif par étape")
     summary_cols = st.columns(len(seg_df))
